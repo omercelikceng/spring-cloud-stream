@@ -68,6 +68,8 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.stream.utils.CacheKeyCreatorUtils.createChannelCacheKey;
+
 
 /**
  * A class which allows user to send data to an output binding.
@@ -294,13 +296,8 @@ public final class StreamBridge implements StreamOperations, SmartInitializingSi
 					addPartitioningInterceptorIfNeedBe(producerProperties, destinationName, (AbstractMessageChannel) messageChannel);
 					addGlobalChannelInterceptorProcessor((AbstractMessageChannel) messageChannel, destinationName);
 
-					this.bindingService.bindProducer(messageChannel, destinationName, true, binder);
-					if (StringUtils.hasText(binderName)) {
-						this.channelCache.put(binderName + ":" + destinationName, messageChannel);
-					}
-					else {
-						this.channelCache.put(destinationName, messageChannel);
-					}
+					this.bindingService.bindProducer(messageChannel, destinationName, true, binder, binderName);
+					this.channelCache.put(createChannelCacheKey(destinationName, binderName), messageChannel);
 				}
 			}
 

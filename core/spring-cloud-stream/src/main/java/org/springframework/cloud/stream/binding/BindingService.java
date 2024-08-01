@@ -49,6 +49,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
 
+import static org.springframework.cloud.stream.utils.CacheKeyCreatorUtils.createChannelCacheKey;
+
 /**
  * Handles binding of input/output targets by delegating to an underlying {@link Binder}.
  *
@@ -268,7 +270,9 @@ public class BindingService {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T> Binding<T> bindProducer(T output, String outputName, boolean cache, @Nullable Binder<T, ?, ProducerProperties> binder) {
+	public <T> Binding<T> bindProducer(T output, String outputName, boolean cache,
+			@Nullable Binder<T, ?, ProducerProperties> binder,
+			@Nullable String binderName) {
 		String bindingTarget = this.bindingServiceProperties.getBindingDestination(outputName);
 		Class<?> outputClass = output.getClass();
 		if (output instanceof Advised advisedOutput) {
@@ -302,13 +306,13 @@ public class BindingService {
 			originalProducerProperties.setPartitionCount(producerProperties.getPartitionCount());
 		}
 		if (cache) {
-			this.producerBindings.put(outputName, binding);
+			this.producerBindings.put(createChannelCacheKey(outputName, binderName), binding);
 		}
 		return binding;
 	}
 
 	public <T> Binding<T> bindProducer(T output, String outputName, boolean cache) {
-		return this.bindProducer(output, outputName, cache, null);
+		return this.bindProducer(output, outputName, cache, null, null);
 	}
 
 	public <T> Binding<T> bindProducer(T output, String outputName) {
